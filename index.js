@@ -11,10 +11,10 @@ async function getGDP(){
             url: gdpPerCapita
         })
 
+        //
         const $ = cheerio.load(data1.data)
         const elemSelector = '#worldCountries > div.container.is-fluid.m-0 > div > div > div:nth-child(2) > div.datatable-container.undefined > table > tbody > tr'
            const keys=[
-            'Rank',
             'Name',
             'GDP (IMF 19)',
             'GDP (UN 16)',
@@ -59,23 +59,33 @@ async function getHealthCare(){
 
         const $ = cheerio.load(data2.data)
         const elemSelector = '#dataTable > div.container.is-fluid.m-0 > div > div.column.is-8.is-clearfix.py-6 > div:nth-child(2) > div.datatable-container.undefined > table > tbody > tr'
-           // const keys=[
-        //     'rank',
-        //     'name',
-        //     'price',
-        //     '24h',
-        //     '7d',
-        //     'MarketCap',
-
-
-        // ]
+        const keys = [
+            'Country',
+            'LPI 2020 Ranking',
+            'LPI 2019 Ranking',
+            'CEO World Ranking',
+            'Population'
+        ]
+        
+        const health = []
         
         $(elemSelector).each((parentIdx,parentElem) =>{
-            if(parentIdx <= 15){  
-                console.log(parentIdx)            
+            // define a key index
+            let keyIdx =0
+            let healthObj = {}
+            if(parentIdx <= 14){  
+                $(parentElem).children().each((childIdx, childElem) => {
+                    const values = $(childElem).text()
+                    if(values){
+                        healthObj[keys[keyIdx]] = values
+                        keyIdx++
+                    }
+                })
+                health.push(healthObj)
+
             }
         })
-        // console.log(emi)
+        return health
 
 
         
@@ -87,7 +97,7 @@ async function getHealthCare(){
 async function getPoorNations(){
     try {
         // define the site url we are scraping from 
-        const getPoorNation = 'https://worldpopulationreview.com/country-rankings/best-healthcare-in-the-world'
+        const getPoorNation = 'https://worldpopulationreview.com/country-rankings/poorest-countries-in-the-world'
         const data3 = await axios({
             method: 'GET',
             url: getPoorNation
@@ -95,23 +105,34 @@ async function getPoorNations(){
 
         const $ = cheerio.load(data3.data)
         const elemSelector = '#dataTable > div.container.is-fluid.m-0 > div > div.column.is-8.is-clearfix.py-6 > div:nth-child(1) > div.datatable-container.undefined > table > tbody > tr'
-           // const keys=[
-        //     'rank',
-        //     'name',
-        //     'price',
-        //     '24h',
-        //     '7d',
-        //     'MarketCap',
-
-
-        // ]
+        
+        const keys = [
+            'Country',
+            'GNI per capita, Atlas method (current US$)',
+            'Latest Year',
+            'GNI per capita',
+            'Population'
+        ]
+        
+        const poorNations = []
         
         $(elemSelector).each((parentIdx,parentElem) =>{
-            if(parentIdx <= 15){  
-                console.log(parentIdx)            
+            // define a key index
+            let keyIdx =0
+            let poorObj = {}
+            if(parentIdx <= 14){  
+                $(parentElem).children().each((childIdx, childElem) => {
+                    const values = $(childElem).text()
+                    if(values){
+                        poorObj[keys[keyIdx]] = values
+                        keyIdx++
+                    }
+                })
+                poorNations.push(poorObj)
+
             }
         })
-        // console.log(emi)
+        return poorNations
 
 
         
@@ -132,25 +153,32 @@ async function getEmissions(){
 
         const $ = cheerio.load(data4.data)
         const elemSelector = '#dataTable > div.container.is-fluid.m-0 > div > div.column.is-8.is-clearfix.py-6 > div:nth-child(2) > div.datatable-container.undefined > table > tbody > tr'
-           // const keys=[
-        //     'rank',
-        //     'name',
-        //     'price',
-        //     '24h',
-        //     '7d',
-        //     'MarketCap',
-
-
-        // ]
+        const keys = [
+            'Country',
+            'CO2 Total Emissions (Mton)',
+            '% World Total',
+            'Population',
+        ]
+        
+        const emissions = []
         
         $(elemSelector).each((parentIdx,parentElem) =>{
-            if(parentIdx <= 15){  
-                console.log(parentIdx)            
+            // define a key index
+            let keyIdx =0
+            let emissionsObj = {}
+            if(parentIdx <= 14){  
+                $(parentElem).children().each((childIdx, childElem) => {
+                    const values = $(childElem).text()
+                    if(values){
+                        emissionsObj[keys[keyIdx]] = values
+                        keyIdx++
+                    }
+                })
+                emissions.push(emissionsObj)
+
             }
         })
-        // console.log(emi)
-
-
+        return emissions
         
     } catch (err) {
         console.error(err)
@@ -194,7 +222,7 @@ async function getCrimeRate(){
 }
 
 
-getGDP()
+// getGDP()
 // getHealthCare()
 // getPoorNations()
 // getEmissions()
@@ -206,7 +234,46 @@ app.get('/api/gdp-countries', async(req,res) =>{
     try {
         const getGDPx = await getGDP()
         return res.status(200).json({
-            result: getGDPx
+            "Countries with Highest GDP": getGDPx
+        })
+    } catch (error) {
+        return res.status(500).json({
+            err: err.toString()
+        })
+    }
+})
+
+app.get('/api/best-healthcare-countries', async(req,res) =>{
+    try {
+        const getHealth = await getHealthCare()
+        return res.status(200).json({
+            "HealthCare Status of top 15 nations": getHealth
+        })
+    } catch (error) {
+        return res.status(500).json({
+            err: err.toString()
+        })
+    }
+})
+
+app.get('/api/poor-countries', async(req,res) =>{
+    try {
+        const getPoor = await getPoorNations()
+        return res.status(200).json({
+            "Poorest Nations Currently": getPoor
+        })
+    } catch (error) {
+        return res.status(500).json({
+            err: err.toString()
+        })
+    }
+})
+
+app.get('/api/emissions', async(req,res) =>{
+    try {
+        const getEmission = await getEmissions()
+        return res.status(200).json({
+            "CO2  Emissions Currently": getEmission
         })
     } catch (error) {
         return res.status(500).json({
@@ -218,7 +285,4 @@ app.get('/api/gdp-countries', async(req,res) =>{
 app.listen(5000, ()=>{
     console.log('Running on Port 5000')
 })
-
-
-
 
