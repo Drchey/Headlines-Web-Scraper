@@ -196,23 +196,32 @@ async function getCrimeRate(){
 
         const $ = cheerio.load(data5.data)
         const elemSelector = '#dataTable > div.container.is-fluid.m-0 > div > div.column.is-8.is-clearfix.py-6 > div:nth-child(1) > div.datatable-container.undefined > table > tbody > tr'
-           // const keys=[
-        //     'rank',
-        //     'name',
-        //     'price',
-        //     '24h',
-        //     '7d',
-        //     'MarketCap',
-
-
-        // ]
+        const keys = [
+            'Rankings',
+            'Country',
+            'Crime Index',
+            'Population',
+        ]
+        
+        const crime = []
         
         $(elemSelector).each((parentIdx,parentElem) =>{
-            if(parentIdx <= 15){  
-                console.log(parentIdx)            
+            // define a key index
+            let keyIdx =0
+            let crimeObj = {}
+            if(parentIdx <= 14){  
+                $(parentElem).children().each((childIdx, childElem) => {
+                    const values = $(childElem).text()
+                    if(values){
+                        crimeObj[keys[keyIdx]] = values
+                        keyIdx++
+                    }
+                })
+                crime.push(crimeObj)
+
             }
         })
-        // console.log(emi)
+        return crime
 
 
         
@@ -274,6 +283,19 @@ app.get('/api/emissions', async(req,res) =>{
         const getEmission = await getEmissions()
         return res.status(200).json({
             "CO2  Emissions Currently": getEmission
+        })
+    } catch (error) {
+        return res.status(500).json({
+            err: err.toString()
+        })
+    }
+})
+
+app.get('/api/crime-rate', async(req,res) =>{
+    try {
+        const getCrime = await getCrimeRate()
+        return res.status(200).json({
+            "Crime Rate": getCrime
         })
     } catch (error) {
         return res.status(500).json({
