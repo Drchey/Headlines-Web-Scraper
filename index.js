@@ -20,7 +20,8 @@ async function getGDP(){
             'GDP (UN 16)',
             'GDP per Capita',
             'Population',
-        ]
+             ]
+        const gdpArr = []
         
         $(elemSelector).each((parentIdx,parentElem) =>{
             // define a key index
@@ -34,10 +35,11 @@ async function getGDP(){
                         keyIdx++
                     }
                 })
-                console.log(gdpObj)
+                gdpArr.push(gdpObj)
+
             }
         })
-        // console.log(emi)
+        return gdpArr
 
 
         
@@ -197,6 +199,25 @@ getGDP()
 // getPoorNations()
 // getEmissions()
 // getCrimeRate()
+
+const app = express()
+
+app.get('/api/gdp-countries', async(req,res) =>{
+    try {
+        const getGDPx = await getGDP()
+        return res.status(200).json({
+            result: getGDPx
+        })
+    } catch (error) {
+        return res.status(500).json({
+            err: err.toString()
+        })
+    }
+})
+
+app.listen(5000, ()=>{
+    console.log('Running on Port 5000')
+})
 
 
 
